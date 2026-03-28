@@ -91,7 +91,6 @@
             background-position: center;
         }
 
-        /* GitHub上のファイル名（Bberry.png等）と完全に一致させています */
         .img-B { background-image: url('Bberry.png'); }
         .img-C { background-image: url('Cberry.png'); }
         .img-R { background-image: url('Rberry.png'); }
@@ -139,30 +138,47 @@
         const finalLink = document.getElementById('final-link');
 
         let pressTimer;
+        let isLongPress = false; // 長押しが成立したかどうかのフラグ
 
         function resetState() {
             clearTimeout(pressTimer);
             hint.style.display = 'none';
             decodeBtn.style.opacity = '1';
+            // 長押しのフラグはクリックイベントの後にリセットされるようにします
         }
 
         function startPress() {
+            isLongPress = false; // 開始時にリセット
             pressTimer = setTimeout(() => {
+                isLongPress = true; // 1秒経ったら長押し成立
                 hint.style.display = 'block';
                 decodeBtn.style.opacity = '0.2';
             }, 1000);
         }
 
+        // マウスイベント
         decodeBtn.addEventListener('mousedown', startPress);
         decodeBtn.addEventListener('mouseup', resetState);
         decodeBtn.addEventListener('mouseleave', resetState);
-        decodeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
+
+        // タッチイベント
+        decodeBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startPress();
+        });
         decodeBtn.addEventListener('touchend', resetState);
         decodeBtn.addEventListener('touchcancel', resetState);
         
         window.oncontextmenu = function(e) { e.preventDefault(); return false; };
 
-        decodeBtn.addEventListener('click', () => {
+        // クリックイベントの修正
+        decodeBtn.addEventListener('click', (e) => {
+            // 長押しが成立していたら、ここでの動作（LINE遷移）をキャンセル
+            if (isLongPress) {
+                isLongPress = false; 
+                return;
+            }
+
             const code = passcodeInp.value;
             if (code === "20112004") {
                 decodeBtn.style.display = 'none';
@@ -174,8 +190,6 @@
             }
         });
 
-        // 正解：123422343314412
-        // 対応：B C R S C C R S R R B S S B C
         const finalAnswer = "BCRSCCRSRRBSSBC";
         let currentInput = "";
 
