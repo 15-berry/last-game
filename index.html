@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>解読クエスト</title>
     
     <meta name="robots" content="noimageindex, noarchive, nosnippet">
@@ -22,11 +22,13 @@
             background-color: #f0f0f0;
             font-family: sans-serif;
             overflow: hidden;
+            /* テキスト選択を徹底排除 */
             user-select: none;
             -webkit-user-select: none;
         }
 
         #container {
+            position: relative;
             text-align: center;
         }
 
@@ -38,9 +40,10 @@
             color: white;
             border: none;
             border-radius: 8px;
-            touch-action: manipulation;
+            touch-action: none; /* ブラウザのデフォルト動作（スクロールやズーム）を無効化 */
             position: relative;
             z-index: 2;
+            transition: opacity 0.2s; /* 変化を少し滑らかに */
         }
 
         #hidden-hint {
@@ -52,7 +55,7 @@
             color: #666;
             white-space: nowrap;
             z-index: 1;
-            display: none;
+            display: none; /* 最初は非表示 */
         }
 
         #input-area {
@@ -65,6 +68,8 @@
             font-size: 18px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            user-select: auto; /* 入力欄だけは触れるように */
+            -webkit-user-select: auto;
         }
 
         #image-container {
@@ -130,33 +135,41 @@
 
         let pressTimer;
 
-        // --- 1. 長押し処理 ---
-        function startPress() {
-            pressTimer = setTimeout(() => {
-                hint.style.display = 'block';
-                decodeBtn.style.opacity = '0.3';
-            }, 1000);
-        }
-
-        function cancelPress() {
+        // 状態をリセットする関数（離した時用）
+        function resetState() {
             clearTimeout(pressTimer);
             hint.style.display = 'none';
             decodeBtn.style.opacity = '1';
         }
 
+        // 長押し開始時の処理
+        function startPress(e) {
+            // 3秒後に透けさせる
+            pressTimer = setTimeout(() => {
+                hint.style.display = 'block';
+                decodeBtn.style.opacity = '0.2'; // かなり薄くする
+            }, 1000);
+        }
+
+        // マウス・タッチイベントの登録
         decodeBtn.addEventListener('mousedown', startPress);
-        decodeBtn.addEventListener('mouseup', cancelPress);
-        decodeBtn.addEventListener('touchstart', (e) => { startPress(); }, {passive: true});
-        decodeBtn.addEventListener('touchend', cancelPress);
+        decodeBtn.addEventListener('mouseup', resetState);
+        decodeBtn.addEventListener('mouseleave', resetState); // 枠外に指が逃げた時用
+
+        decodeBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // スマホのメニュー表示などを防止
+            startPress();
+        });
+        decodeBtn.addEventListener('touchend', resetState);
+        decodeBtn.addEventListener('touchcancel', resetState);
         
-        window.oncontextmenu = function(event) {
-            if (event.target.id === 'decode-btn') {
-                event.preventDefault();
-                return false;
-            }
+        // 右クリックメニュー禁止
+        window.oncontextmenu = function(e) {
+            e.preventDefault();
+            return false;
         };
 
-        // --- 2. クリック処理 ---
+        // クリック（短押し）した時の処理
         decodeBtn.addEventListener('click', () => {
             const code = passcodeInp.value;
 
@@ -165,19 +178,13 @@
                 inputArea.style.display = 'none';
                 imgContainer.style.display = 'grid';
             } else {
-                // ご希望のリフレッシュ処理をシミュレートしてLINEへ飛ばす
-                // プレビューを出さない設定を施した上で遷移させます
                 const lineUrl = "https://lin.ee/xrhPcNO";
-                
-                // 入力欄を表示
                 inputArea.style.display = 'block';
-                
-                // 別タブでLINEを開く
                 window.open(lineUrl, '_blank');
             }
         });
 
-        // --- 3. 画像パズル処理 ---
+        // 画像パズル処理
         const correctOrder = "123422343314412";
         let currentInput = "";
 
