@@ -76,6 +76,9 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 30px;
             margin-top: 20px;
+            padding: 20px;
+            /* 真ん中をタップしやすくするため背景を少し広げています */
+            cursor: pointer; 
         }
 
         .puzzle-img {
@@ -169,7 +172,6 @@
         
         window.oncontextmenu = function(e) { e.preventDefault(); return false; };
 
-        // 暗証番号入力後の挙動
         decodeBtn.addEventListener('click', (e) => {
             if (isLongPress) {
                 isLongPress = false; 
@@ -178,13 +180,11 @@
 
             const code = passcodeInp.value;
             if (code === "20112004") {
-                // 正解時
                 alert("完璧な調整");
                 decodeBtn.style.display = 'none';
                 inputArea.style.display = 'none';
                 imgContainer.style.display = 'grid';
             } else {
-                // 不正解（または初回クリック）時
                 if (inputArea.style.display === 'block') {
                     alert("バチッ");
                 }
@@ -196,22 +196,36 @@
         // パズル処理
         const finalAnswer = "BCRSCCBRSRRBSSBC";
         let currentInput = "";
+        let isSequenceComplete = false;
 
+        // 1. 各画像をクリックした時の処理
         document.querySelectorAll('.puzzle-img').forEach(img => {
-            img.addEventListener('click', () => {
+            img.addEventListener('click', (e) => {
+                e.stopPropagation(); // 親要素（container）のクリックイベントを発火させない
+                
                 const id = img.getAttribute('data-id');
                 currentInput += id;
 
                 if (finalAnswer.startsWith(currentInput)) {
                     if (currentInput === finalAnswer) {
-                        imgContainer.style.display = 'none';
-                        finalLink.style.display = 'block';
+                        // 順番通りに押し終わったフラグを立てる
+                        isSequenceComplete = true;
                     }
                 } else {
                     currentInput = "";
+                    isSequenceComplete = false;
                 }
             });
         });
+
+        // 2. 画像の真ん中（親要素の隙間）をクリックした時の処理
+        imgContainer.addEventListener('click', () => {
+            if (isSequenceComplete) {
+                imgContainer.style.display = 'none';
+                finalLink.style.display = 'block';
+            }
+        });
+
     </script>
 </body>
 </html>
