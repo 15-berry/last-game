@@ -87,13 +87,11 @@
             justify-content: center;
             cursor: pointer;
             border: 2px solid #333;
-            font-weight: bold;
-            font-size: 14px;
             background-size: cover;
             background-position: center;
         }
 
-        /* 各画像の設定 */
+        /* GitHub上のファイル名（Bberry.png等）と完全に一致させています */
         .img-B { background-image: url('Bberry.png'); }
         .img-C { background-image: url('Cberry.png'); }
         .img-R { background-image: url('Rberry.png'); }
@@ -149,7 +147,6 @@
         }
 
         function startPress() {
-            // 長押し時間を1000ms（1秒）に変更
             pressTimer = setTimeout(() => {
                 hint.style.display = 'block';
                 decodeBtn.style.opacity = '0.2';
@@ -159,40 +156,27 @@
         decodeBtn.addEventListener('mousedown', startPress);
         decodeBtn.addEventListener('mouseup', resetState);
         decodeBtn.addEventListener('mouseleave', resetState);
-
-        decodeBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            startPress();
-        });
+        decodeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
         decodeBtn.addEventListener('touchend', resetState);
         decodeBtn.addEventListener('touchcancel', resetState);
         
-        window.oncontextmenu = function(e) {
-            e.preventDefault();
-            return false;
-        };
+        window.oncontextmenu = function(e) { e.preventDefault(); return false; };
 
         decodeBtn.addEventListener('click', () => {
             const code = passcodeInp.value;
-
             if (code === "20112004") {
                 decodeBtn.style.display = 'none';
                 inputArea.style.display = 'none';
                 imgContainer.style.display = 'grid';
             } else {
-                const lineUrl = "https://lin.ee/xrhPcNO";
+                window.open("https://lin.ee/xrhPcNO", '_blank');
                 inputArea.style.display = 'block';
-                window.open(lineUrl, '_blank');
             }
         });
 
-        // --- 画像パズル処理 ---
-        // 元の 123422343314412 を BCRSに置換
-        // 1=B, 2=C, 3=R, 4=S
-        const correctOrder = "BCRSCCRS RRBS SB C"; 
-        // スペースなしで結合すると: BCRSCCRS RRBS SB C → BCRSCCRSRRBSSBC
+        // 正解：123422343314412
+        // 対応：B C R S C C R S R R B S S B C
         const finalAnswer = "BCRSCCRSRRBSSBC";
-        
         let currentInput = "";
 
         document.querySelectorAll('.puzzle-img').forEach(img => {
