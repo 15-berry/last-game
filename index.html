@@ -1,10 +1,200 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <title>...</title>
-  <meta http-equiv="refresh" content="0;URL='https://lin.ee/あなたの公式アカウントのID'">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>解読クエスト</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+            overflow: hidden;
+            user-select: none; /* 長押し時のテキスト選択を防止 */
+            -webkit-user-select: none;
+        }
+
+        #container {
+            text-align: center;
+        }
+
+        /* 解読ボタンのスタイル */
+        #decode-btn {
+            padding: 20px 40px;
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            touch-action: manipulation;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 裏側に隠されたテキスト */
+        #hidden-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+            z-index: 1;
+            display: none;
+        }
+
+        /* 入力欄 */
+        #input-area {
+            margin-top: 20px;
+            display: none;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* 画像エリア */
+        #image-container {
+            display: none;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .puzzle-img {
+            width: 120px;
+            height: 120px;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #333;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        /* 最終URL表示 */
+        #final-link {
+            display: none;
+            font-size: 20px;
+            font-weight: bold;
+            color: blue;
+            word-break: break-all;
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
+
+    <div id="container">
+        <div id="hidden-hint">暗証番号は？と聞いてみよう</div>
+        
+        <button id="decode-btn">解読</button>
+
+        <div id="input-area">
+            <input type="text" id="passcode" placeholder="暗証番号を入力">
+        </div>
+
+        <div id="image-container">
+            <div class="puzzle-img" data-id="1">画像1</div>
+            <div class="puzzle-img" data-id="2">画像2</div>
+            <div class="puzzle-img" data-id="3">画像3</div>
+            <div class="puzzle-img" data-id="4">画像4</div>
+        </div>
+
+        <div id="final-link">
+            完了！URL: <a href="https://example.com/goal" target="_blank">https://example.com/goal</a>
+        </div>
+    </div>
+
+    <script>
+        const decodeBtn = document.getElementById('decode-btn');
+        const hint = document.getElementById('hidden-hint');
+        const inputArea = document.getElementById('input-area');
+        const passcodeInp = document.getElementById('passcode');
+        const imgContainer = document.getElementById('image-container');
+        const finalLink = document.getElementById('final-link');
+
+        let pressTimer;
+        let isCodeCorrect = false;
+
+        // --- 1. 長押し処理 (3秒) ---
+        function startPress() {
+            pressTimer = setTimeout(() => {
+                hint.style.display = 'block';
+                decodeBtn.style.opacity = '0.3'; // 透かして後ろを見せる
+            }, 3000);
+        }
+
+        function cancelPress() {
+            clearTimeout(pressTimer);
+            hint.style.display = 'none';
+            decodeBtn.style.opacity = '1';
+        }
+
+        decodeBtn.addEventListener('mousedown', startPress);
+        decodeBtn.addEventListener('mouseup', cancelPress);
+        decodeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
+        decodeBtn.addEventListener('touchend', cancelPress);
+        // スマホの右クリックメニュー（長押しメニュー）を禁止
+        window.oncontextmenu = function(event) {
+            if (event.target.id === 'decode-btn') {
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
+        };
+
+        // --- 2. クリック処理 ---
+        decodeBtn.addEventListener('click', () => {
+            const code = passcodeInp.value;
+
+            if (code === "20112004") {
+                // 正解時
+                decodeBtn.style.display = 'none';
+                inputArea.style.display = 'none';
+                imgContainer.style.display = 'grid';
+            } else {
+                // 通常時（URLを開く ＆ 入力欄表示）
+                window.open('https://line.me/', '_blank'); // URL:LINEの代わり
+                inputArea.style.display = 'block';
+            }
+        });
+
+        // --- 3. 画像パズル処理 ---
+        const correctOrder = "123422343314412";
+        let currentInput = "";
+
+        document.querySelectorAll('.puzzle-img').forEach(img => {
+            img.addEventListener('click', () => {
+                const id = img.getAttribute('data-id');
+                currentInput += id;
+
+                // 入力中の文字列が正解のプレフィックスか確認
+                if (correctOrder.startsWith(currentInput)) {
+                    if (currentInput === correctOrder) {
+                        // 全て一致
+                        imgContainer.style.display = 'none';
+                        finalLink.style.display = 'block';
+                    }
+                } else {
+                    // 間違えたらリセット（最初からやり直し）
+                    currentInput = "";
+                    alert("順番が違います。最初からやり直し！");
+                }
+            });
+        });
+    </script>
 </body>
 </html>
