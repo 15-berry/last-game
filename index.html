@@ -22,7 +22,6 @@
             background-color: #f0f0f0;
             font-family: sans-serif;
             overflow: hidden;
-            /* テキスト選択を徹底排除 */
             user-select: none;
             -webkit-user-select: none;
         }
@@ -40,10 +39,10 @@
             color: white;
             border: none;
             border-radius: 8px;
-            touch-action: none; /* ブラウザのデフォルト動作（スクロールやズーム）を無効化 */
+            touch-action: none;
             position: relative;
             z-index: 2;
-            transition: opacity 0.2s; /* 変化を少し滑らかに */
+            transition: opacity 0.2s;
         }
 
         #hidden-hint {
@@ -55,7 +54,7 @@
             color: #666;
             white-space: nowrap;
             z-index: 1;
-            display: none; /* 最初は非表示 */
+            display: none;
         }
 
         #input-area {
@@ -68,7 +67,7 @@
             font-size: 18px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            user-select: auto; /* 入力欄だけは触れるように */
+            user-select: auto;
             -webkit-user-select: auto;
         }
 
@@ -82,15 +81,23 @@
         .puzzle-img {
             width: 120px;
             height: 120px;
-            background-color: #ddd;
+            background-color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             border: 2px solid #333;
             font-weight: bold;
-            font-size: 20px;
+            font-size: 14px;
+            background-size: cover;
+            background-position: center;
         }
+
+        /* 各画像の設定 */
+        .img-B { background-image: url('Bberry.png'); }
+        .img-C { background-image: url('Cberry.png'); }
+        .img-R { background-image: url('Rberry.png'); }
+        .img-S { background-image: url('Sberry.png'); }
 
         #final-link {
             display: none;
@@ -114,10 +121,10 @@
         </div>
 
         <div id="image-container">
-            <div class="puzzle-img" data-id="1">画像1</div>
-            <div class="puzzle-img" data-id="2">画像2</div>
-            <div class="puzzle-img" data-id="3">画像3</div>
-            <div class="puzzle-img" data-id="4">画像4</div>
+            <div class="puzzle-img img-B" data-id="B"></div>
+            <div class="puzzle-img img-C" data-id="C"></div>
+            <div class="puzzle-img img-R" data-id="R"></div>
+            <div class="puzzle-img img-S" data-id="S"></div>
         </div>
 
         <div id="final-link">
@@ -135,41 +142,36 @@
 
         let pressTimer;
 
-        // 状態をリセットする関数（離した時用）
         function resetState() {
             clearTimeout(pressTimer);
             hint.style.display = 'none';
             decodeBtn.style.opacity = '1';
         }
 
-        // 長押し開始時の処理
-        function startPress(e) {
-            // 3秒後に透けさせる
+        function startPress() {
+            // 長押し時間を1000ms（1秒）に変更
             pressTimer = setTimeout(() => {
                 hint.style.display = 'block';
-                decodeBtn.style.opacity = '0.2'; // かなり薄くする
+                decodeBtn.style.opacity = '0.2';
             }, 1000);
         }
 
-        // マウス・タッチイベントの登録
         decodeBtn.addEventListener('mousedown', startPress);
         decodeBtn.addEventListener('mouseup', resetState);
-        decodeBtn.addEventListener('mouseleave', resetState); // 枠外に指が逃げた時用
+        decodeBtn.addEventListener('mouseleave', resetState);
 
         decodeBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // スマホのメニュー表示などを防止
+            e.preventDefault();
             startPress();
         });
         decodeBtn.addEventListener('touchend', resetState);
         decodeBtn.addEventListener('touchcancel', resetState);
         
-        // 右クリックメニュー禁止
         window.oncontextmenu = function(e) {
             e.preventDefault();
             return false;
         };
 
-        // クリック（短押し）した時の処理
         decodeBtn.addEventListener('click', () => {
             const code = passcodeInp.value;
 
@@ -184,8 +186,13 @@
             }
         });
 
-        // 画像パズル処理
-        const correctOrder = "123422343314412";
+        // --- 画像パズル処理 ---
+        // 元の 123422343314412 を BCRSに置換
+        // 1=B, 2=C, 3=R, 4=S
+        const correctOrder = "BCRSCCRS RRBS SB C"; 
+        // スペースなしで結合すると: BCRSCCRS RRBS SB C → BCRSCCRSRRBSSBC
+        const finalAnswer = "BCRSCCRSRRBSSBC";
+        
         let currentInput = "";
 
         document.querySelectorAll('.puzzle-img').forEach(img => {
@@ -193,8 +200,8 @@
                 const id = img.getAttribute('data-id');
                 currentInput += id;
 
-                if (correctOrder.startsWith(currentInput)) {
-                    if (currentInput === correctOrder) {
+                if (finalAnswer.startsWith(currentInput)) {
+                    if (currentInput === finalAnswer) {
                         imgContainer.style.display = 'none';
                         finalLink.style.display = 'block';
                     }
