@@ -74,13 +74,11 @@
         #image-container {
             display: none;
             grid-template-columns: repeat(2, 1fr);
-            /* --- 画像同士の間隔を倍の30pxに --- */
             gap: 30px;
             margin-top: 20px;
         }
 
         .puzzle-img {
-            /* --- 画像サイズを倍の240pxに --- */
             width: 240px;
             height: 240px;
             background-color: #fff;
@@ -89,7 +87,6 @@
             justify-content: center;
             cursor: pointer;
             border: 2px solid #333;
-            /* --- 画像データが枠内に綺麗に収まる設定 --- */
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
@@ -135,7 +132,7 @@
 
     <script>
         const decodeBtn = document.getElementById('decode-btn');
-        const hint = document.getElementById('hidden-hint');
+        const hiddenHint = document.getElementById('hidden-hint');
         const inputArea = document.getElementById('input-area');
         const passcodeInp = document.getElementById('passcode');
         const imgContainer = document.getElementById('image-container');
@@ -146,7 +143,7 @@
 
         function resetState() {
             clearTimeout(pressTimer);
-            hint.style.display = 'none';
+            hiddenHint.style.display = 'none';
             decodeBtn.style.opacity = '1';
         }
 
@@ -154,7 +151,7 @@
             isLongPress = false; 
             pressTimer = setTimeout(() => {
                 isLongPress = true; 
-                hint.style.display = 'block';
+                hiddenHint.style.display = 'block';
                 decodeBtn.style.opacity = '0.2';
             }, 1000);
         }
@@ -172,6 +169,7 @@
         
         window.oncontextmenu = function(e) { e.preventDefault(); return false; };
 
+        // 暗証番号入力後の挙動
         decodeBtn.addEventListener('click', (e) => {
             if (isLongPress) {
                 isLongPress = false; 
@@ -180,15 +178,22 @@
 
             const code = passcodeInp.value;
             if (code === "20112004") {
+                // 正解時
+                alert("完璧な調整");
                 decodeBtn.style.display = 'none';
                 inputArea.style.display = 'none';
                 imgContainer.style.display = 'grid';
             } else {
+                // 不正解（または初回クリック）時
+                if (inputArea.style.display === 'block') {
+                    alert("バチッ");
+                }
                 window.open("https://lin.ee/xrhPcNO", '_blank');
                 inputArea.style.display = 'block';
             }
         });
 
+        // パズル処理
         const finalAnswer = "BCRSCCRSRRBSSBC";
         let currentInput = "";
 
@@ -204,7 +209,6 @@
                     }
                 } else {
                     currentInput = "";
-                    alert("順番が違います。最初からやり直し！");
                 }
             });
         });
